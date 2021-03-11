@@ -73,7 +73,7 @@ try {
                 $fiscalPositions.='1;';
                 $fiscalPositions.=($shipAmount*100).';';
                 $fiscalPositions.=$TAX.';';
-                $fiscalPositions.='shipping'.'|';
+                $fiscalPositions.='Доставка'.'|';
             }
             $fiscalPositions = substr($fiscalPositions, 0, -1);
         }

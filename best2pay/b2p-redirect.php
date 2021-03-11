@@ -105,6 +105,10 @@ function orderAsPayed($response) {
 	// check server signature
 	$tmp_response = (array)$response;
 	unset($tmp_response["signature"]);
+	unset($tmp_response["ofd_state"]);
+	unset($tmp_response["protocol_message"]);
+	// echo '<pre>';
+	// print_r($tmp_response);	
 	$signature = base64_encode(md5(implode('', $tmp_response) . CSalePaySystemAction::GetParamValue("Password")));
 	if ($signature !== $response->signature)
 		throw new Exception("Invalid signature");
