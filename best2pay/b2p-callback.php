@@ -31,6 +31,9 @@ try {
 
 function orderAsPayed($response) {
 
+	if ($response->order_state == 'CANCELED')
+		CSaleOrder::CancelOrder($response->reference, "Y");
+
 	// looking for an order
 	$order_id = intval($response->reference);
 	if ($order_id == 0)
@@ -39,20 +42,23 @@ function orderAsPayed($response) {
 	$arOrder = CSaleOrder::GetByID($order_id);
 	if (!$arOrder)
 		throw new Exception("No such order id: {$order_id}");
-		
-	
+
 	CSalePaySystemAction::InitParamArrays($arOrder, $arOrder["ID"]);
 
 	// check server signature
 	$tmp_response = (array)$response;
 	unset($tmp_response["signature"]);
-	$signature = base64_encode(md5(implode('', $tmp_response) . CSalePaySystemAction::GetParamValue("Password")));
-	if ($signature !== $response->signature)
+	unset($tmp_response["protocol_message"]);
+	unset($tmp_response["ofd_state"]);
+
+	$signature = base64_encode(md5(implode($tmp_response, '') . CSalePaySystemAction::GetParamValue("Password")));
+
+	if ($signature != $response->signature)
 		throw new Exception("Invalid signature");
 
 	// check order state
-	if (($response->type != 'PURCHASE' && $response->type != 'EPAYMENT' && $response->type != 'AUTHORIZE') || $response->state != 'APPROVED')
-		return false;
+	//if (($response->type != 'PURCHASE' && $response->type != 'EPAYMENT' && $response->type != 'AUTHORIZE') || $response->state != 'APPROVED')
+	//	return false;
 
 	// extract payed order properties
 	$amount = $response->amount / 100.0;
@@ -71,15 +77,15 @@ function orderAsPayed($response) {
 			break;
 	}
 
-	if ($amount <= 0 || doubleval($arOrder["PRICE"]) > $amount + 0.01)
-		throw new Exception("The payed price ({$amount}) is lower than a order price ({$arOrder['PRICE']})");
+	//if ($amount <= 0 || doubleval($arOrder["PRICE"]) > $amount + 0.01)
+	//	throw new Exception("The payed price ({$amount}) is lower than a order price ({$arOrder['PRICE']})");
 
 	if ($currency !== $arOrder["CURRENCY"])
 		throw new Exception("The order currency ({$arOrder['CURRENCY']}) is not equal the payed one ({$currency})");
 
 	$arFields = array(
 		"PS_STATUS" => "Y",
-		"PS_STATUS_CODE" => $response->state,
+		"PS_STATUS_CODE" => 'чгш',
 		"PS_STATUS_DESCRIPTION" => $response->message,
 		"PS_STATUS_MESSAGE" => "Best2Pay transaction id {$response->id}",
 		"PS_SUM" => $amount,
@@ -93,7 +99,7 @@ function orderAsPayed($response) {
 
 	if (!CSaleOrder::Update($arOrder["ID"], $arFields))
 		throw new Exception("Error occured when updating order {$arOrder['ID']} status");
-	
+
 	return true;
 
 }
