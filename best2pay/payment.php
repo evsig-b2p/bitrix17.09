@@ -54,6 +54,7 @@ try {
     $KKT = (strlen(CSalePaySystemAction::GetParamValue("KKT")) > 0) ?
         intval(CSalePaySystemAction::GetParamValue("KKT")) : 0;
     $fiscalPositions='';
+    $fiscalAmount = 0;
     if ($KKT==1){
         $TAX = (strlen(CSalePaySystemAction::GetParamValue("TAX")) > 0) ?
             intval(CSalePaySystemAction::GetParamValue("TAX")) : 7;
@@ -64,6 +65,7 @@ try {
                 $fiscalPositions.=$basketItem->getQuantity().';';
                 $elementPrice = $basketItem->getPrice();
                 $elementPrice = $elementPrice * 100;
+                $fiscalAmount += $elementPrice * $basketItem->getQuantity();
                 $fiscalPositions.=$elementPrice.';';
                 $fiscalPositions.=$TAX.';';
                 $fiscalPositions.=$basketItem->getField('NAME').'|';
@@ -72,9 +74,13 @@ try {
             if ($shipAmount>0) {
                 $fiscalPositions.='1;';
                 $fiscalPositions.=($shipAmount*100).';';
+                $fiscalAmount += $shipAmount*100;
                 $fiscalPositions.=$TAX.';';
                 $fiscalPositions.='Доставка'.'|';
             }
+            $fiscalDiff = abs($price * 100 - $fiscalAmount);
+            if ($fiscalDiff)
+                $fiscalPositions .= '1;' . $fiscalDiff . ';6;Скидка;14|';          
             $fiscalPositions = substr($fiscalPositions, 0, -1);
         }
     }
