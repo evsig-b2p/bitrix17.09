@@ -51,6 +51,27 @@ try {
     $ORDER_ID =$id;
     $ORDER = CSaleOrder::GetByID($ORDER_ID);
 
+     if($ORDER) {
+      /** @var \Bitrix\Sale\PropertyValueCollection $propertyCollection */
+      if($propertyCollection = $ORDER->getPropertyCollection()) {
+       if($propUserEmail = $propertyCollection->getUserEmail()) {
+        $userEmail = $propUserEmail->getValue();
+       } else {
+        /** @var \Bitrix\Sale\PropertyValue $orderProperty */
+        foreach($propertyCollection as $orderProperty) {
+         if($orderProperty->getField('CODE') == 'EMAIL') {
+          $userEmail = $orderProperty->getValue();
+          break;
+         }
+        }
+       }
+      }
+     }
+
+     if (!$userEmail) {
+        $userEmail = $USER->GetEmail();
+     }
+
     $KKT = (strlen(CSalePaySystemAction::GetParamValue("KKT")) > 0) ?
         intval(CSalePaySystemAction::GetParamValue("KKT")) : 0;
     $fiscalPositions='';
@@ -93,7 +114,7 @@ try {
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($curl, CURLOPT_POST, true);
             curl_setopt($curl, CURLOPT_POSTFIELDS, '&sector=' . $sector . '&reference=' . $id . '&fiscal_positions=' . urlencode($fiscalPositions) . '&amount=' .
-                intval($price * 100) . '&description=' . urlencode($desc) . '&email=' . htmlspecialchars($USER->GetEmail(), ENT_QUOTES) . '&currency=' . $currency . '&mode=' . '1' . '&signature=' . $signature . '&url=' . $redirect_url);
+                intval($price * 100) . '&description=' . urlencode($desc) . '&email=' . htmlspecialchars($userEmail, ENT_QUOTES) . '&currency=' . $currency . '&mode=' . '1' . '&signature=' . $signature . '&url=' . $redirect_url);
             $b2p_order_id = curl_exec($curl);
             curl_close($curl);
         }
