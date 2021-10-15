@@ -39,4 +39,3 @@ $MESS["TAX_DESCR"] = "1 – NDS -  20%
 5 – NDS -  0%
 6 – NDS is not appearing";
 
-?>

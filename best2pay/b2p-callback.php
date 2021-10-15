@@ -103,5 +103,3 @@ function orderAsPayed($response) {
 	return true;
 
 }
-
-?>
