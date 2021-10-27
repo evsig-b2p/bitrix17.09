@@ -51,26 +51,32 @@ try {
     $ORDER_ID =$id;
     $ORDER = CSaleOrder::GetByID($ORDER_ID);
 
-     if($ORDER) {
-      /** @var \Bitrix\Sale\PropertyValueCollection $propertyCollection */
-      if($propertyCollection = $ORDER->getPropertyCollection()) {
-       if($propUserEmail = $propertyCollection->getUserEmail()) {
-        $userEmail = $propUserEmail->getValue();
-       } else {
-        /** @var \Bitrix\Sale\PropertyValue $orderProperty */
-        foreach($propertyCollection as $orderProperty) {
-         if($orderProperty->getField('CODE') == 'EMAIL') {
-          $userEmail = $orderProperty->getValue();
-          break;
-         }
+    $userEmail = '';
+    
+    if($ORDER) {
+        try {
+            /** @var \Bitrix\Sale\PropertyValueCollection $propertyCollection */
+            if($propertyCollection = $ORDER->getPropertyCollection()) {
+                if($propUserEmail = $propertyCollection->getUserEmail()) {
+                    $userEmail = $propUserEmail->getValue();
+                } else {
+                    /** @var \Bitrix\Sale\PropertyValue $orderProperty */
+                    foreach($propertyCollection as $orderProperty) {
+                        if($orderProperty->getField('CODE') == 'EMAIL') {
+                            $userEmail = $orderProperty->getValue();
+                            break;
+                        }
+                    }
+                }
+            }
+        } catch (Exception $ex) {
+            if (!$userEmail) {
+                $userEmail = $USER->GetEmail();
+            }
         }
-       }
-      }
-     }
-
-     if (!$userEmail) {
-        $userEmail = $USER->GetEmail();
-     }
+    } else {
+        throw new Exception('Order is not exist');
+    }
 
     $KKT = (strlen(CSalePaySystemAction::GetParamValue("KKT")) > 0) ?
         intval(CSalePaySystemAction::GetParamValue("KKT")) : 0;
