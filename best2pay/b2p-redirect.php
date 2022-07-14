@@ -114,7 +114,7 @@ function orderAsPayed($response) {
 		throw new Exception("Invalid signature");
 
 	// check order state
-	if (($response->type != 'PURCHASE' && $response->type != 'EPAYMENT' && $response->type != 'AUTHORIZE') || $response->state != 'APPROVED')
+	if (($response->type != 'PURCHASE_BY_QR' && $response->type != 'PURCHASE' && $response->type != 'EPAYMENT' && $response->type != 'AUTHORIZE') || $response->state != 'APPROVED')
 		return false;
 
 	// extract payed order properties
